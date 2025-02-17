@@ -1,0 +1,9 @@
+<TXUtils xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="D:\CodeBASSETTI\Others\Devs\Resources\TXUCmd.xsd">
+	<Consts>
+        <Const sName="#CurrentProject#" sValue="TemplateSpeAsposeCLI"/>
+        <Const sName="#ProjectDir#" sValue="#FileDir#..\"/>
+	</Consts>
+	<TXUCmd sPath_File="#FileDir#..\..\Commands\Constants.txucmd"/>
+	<TXUCmd sPath_File="#FileDir#Version.txucmd"/>
+	<Copy sPath_Src="\\vfiler01\TxDev\Licences\Aspose.Total\22.10.0\Aspose.Total.NET.lic" sPath_Dest="#ProjectDir#Aspose.Total.NET.lic"/>
+</TXUtils>

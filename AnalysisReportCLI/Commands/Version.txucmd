@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TXUtils xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="D:\CodeBassetti\Others\Devs\Resources\TXUCmd.xsd">
+	<Consts>
+		<Const sName="#Major#" sValue="1"/>
+        <Const sName="#Minor#" sValue="0"/>
+        <Const sName="#Release#" sValue="0"/>
+        <Const sName="#PreRelease#" sValue=""/>  <!-- Do not use _ for this token -->      
+        <Const sName="#PackageVersion#" sValue="#Major#.#Minor#.#Release#"/>
+        <Const sName="#PackageFullVersion#" sValue="#PackageVersion##Prerelease#"/>
+	</Consts>
+    
+    <!-- Version -->
+    <ReplaceText_In_Dir sDir="#FileDir#..\" bRecursive="true" sFilteringExtensions=".csproj">
+        <ReplaceText bRegEx="true" sPattern="(?&lt;=&lt;Version&gt;)[^&lt;]*" sTo="#PackageFullVersion#"/>
+        <ReplaceText bRegEx="true" sPattern="(?&lt;=&lt;AssemblyVersion&gt;)[^&lt;]*" sTo="#PackageVersion#"/>
+        <ReplaceText bRegEx="true" sPattern="(?&lt;=&lt;FileVersion&gt;)[^&lt;]*" sTo="#PackageVersion#"/>
+    </ReplaceText_In_Dir>
+</TXUtils>

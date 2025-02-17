@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AnalysisReportCLI": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Bassetti\\devint-SWDE-LIMS-Output\\input.xlsx\""
+    }
+  }
+}

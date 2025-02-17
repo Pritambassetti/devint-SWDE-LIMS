@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TXUtils xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="D:\CodeBassetti\Others\Devs\Resources\TXUCmd.xsd">
+	<TXUCmd sPath_File="#FileDir#Initialize.txucmd"/>
+	<TXUCmd sPath_File="#FileDir#..\..\Commands\.SubCommands\Publish.txucmd"/>
+</TXUtils>

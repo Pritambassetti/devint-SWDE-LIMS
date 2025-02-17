@@ -1,0 +1,6 @@
+<TXUtils xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:/Tools/TxUtils/Resources/TXUCmd.xsd">
+    <Consts>
+        <Const sName="#ClientProjectName#" sValue="CUSTOMER-PROJECT-CODE"/>
+        <Const sName="#RepoDir#" sValue="#FILEDIR#..\"/>
+    </Consts>
+</TXUtils>

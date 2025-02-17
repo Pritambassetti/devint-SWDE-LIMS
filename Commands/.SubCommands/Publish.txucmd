@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TXUtils xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="D:\CodeBassetti\Others\Devs\Resources\TXUCmd.xsd">
+	<Consts>  
+        <Const sName="#PublishDir#" sValue="\\vfiler01\DevInt\SpecificDevs\#ClientProjectName#\#CurrentProject#\#PackageFullVersion#\"/>
+        <!-- Generation directories -->
+        <Const sName="#ReleaseTmpDir#" sValue="#ProjectDir#.tmp\"/> 
+        <Const sName="#ReleaseDir#" sValue="#ProjectDir#bin\Release\net472\publish\"/>
+    </Consts>
+    
+    <!-- Prerequisites -->
+    <CheckFilesAndDirs CheckType="fctRaiseIfFound">
+        <Dir>#PublishDir#</Dir>
+    </CheckFilesAndDirs> 
+    
+    <Remove sPathes="#ReleaseDir#"/>
+    
+	<Execute sPath_File="C:\Program Files\dotnet\dotnet.exe" sParameters="publish #ProjectDir##CurrentProject#.csproj -c Release" bVisible="false" bUse_CreateProcess="false" sDir="#FILEDIR#" bWait="true" />  
+    <CheckFilesAndDirs CheckType="fctRaiseIfMissing" Message="The compilation of #CurrentProject# seems to have failed.">
+        <File>#ReleaseDir##CurrentProject#.exe</File>
+    </CheckFilesAndDirs>
+    <Copy sPath_Src="#ReleaseDir#" sPath_Dest="#ReleaseTmpDir#"/>    
+     
+   <ZipDir sDir="#ReleaseTmpDir#" sPath_File_Dest="#PublishDir##CurrentProject#.7z"/>
+    <CheckFilesAndDirs CheckType="fctRaiseIfMissing" Message="The publication on vfiler01 seems to have failed.">
+        <File>#PublishDir##CurrentProject#.7z</File>
+    </CheckFilesAndDirs>
+    <Remove sPathes="#ReleaseTmpDir#"/>
+</TXUtils>

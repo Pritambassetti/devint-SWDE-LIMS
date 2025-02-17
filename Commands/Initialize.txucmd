@@ -1,0 +1,9 @@
+<TXUtils xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="C:/Tools/TxUtils/Resources/TXUCmd.xsd">
+	<TXUCmd sPath_File="#FILEDIR#Constants.txucmd"/>
+
+    <!-- SpeBusinessRest -->
+	<TXUCmd sPath_File="#RepoDir#SpeBusinessRest\Commands\Initialize.txucmd"/>
+
+    <!-- TemplateSpeAsposeCLI -->
+	<TXUCmd sPath_File="#RepoDir#TemplateSpeAsposeCLI\Commands\Initialize.txucmd"/>
+</TXUtils>

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using Aspose.Words;
-using Aspose.Words.Tables;
+using AnalysisReportCLI.Models;
+using Aspose.Cells;
 using TemplateSpeAsposeCLI.Utils;
 
 namespace AnalysisReportCLI
@@ -13,125 +13,120 @@ namespace AnalysisReportCLI
     {
         public static void ProcessFile(string pathSourceFile, string output = "")
         {
-            Document doc = new Document(pathSourceFile + @"\" + "exemple RA-25-034 (avant post traitement).docm");
-
-            Bookmark bookmark = doc.Range.Bookmarks["tableau_analyse"];
-            if (bookmark != null)
+            if (!File.Exists(pathSourceFile))
             {
-                Table bookmarkTable = (Table)bookmark.BookmarkStart.GetAncestor(NodeType.Table);
-                if (bookmarkTable != null)
-                {
-                    Console.WriteLine("Table Found at the Bookmark Function");
-                    List<Row> rows = bookmarkTable.Rows.Skip(1).Cast<Row>().ToList();
-                    Dictionary<string, List<Row>> groupedRows = new Dictionary<string, List<Row>>();
-                    foreach (Row row in rows.Cast<Row>())
-
-                    {
-                        string family = row.Cells[0].GetText().Trim(); // Extract Family column
-                        if (!groupedRows.ContainsKey(family))
-                        {
-                            groupedRows[family] = new List<Row>();
-                        }
-                        groupedRows[family].Add(row);
-                    }
-
-                    //Clear existing rows except header
-                    for (int i = bookmarkTable.Rows.Count - 1; i > 0; i--)
-                    {
-                        bookmarkTable.Rows.RemoveAt(i);
-                    }
-                    bookmarkTable.FirstRow.FirstCell.Remove();
-                    foreach (var group in groupedRows.OrderBy(g => g.Key))
-                    {
-                        Row mergedRow = new Row(doc);
-                        Cell mergedCell = new Cell(doc);
-                        mergedCell.CellFormat.HorizontalMerge = CellMerge.First;
-                        mergedCell.CellFormat.Shading.BackgroundPatternColor = System.Drawing.ColorTranslator.FromHtml("#D9EDF2");
-                        mergedCell.CellFormat.Borders.Color = System.Drawing.Color.White;
-                        mergedCell.Paragraphs.Add(new Paragraph(doc));
-                        mergedCell.FirstParagraph.AppendChild(new Run(doc, group.Key)
-                        {
-                            Font = { Color = System.Drawing.ColorTranslator.FromHtml("#17365C"), Bold = true, Size = 9 }
-                        });
-
-                        mergedRow.Cells.Add(mergedCell);
-                        for (int i = 1; i < bookmarkTable.FirstRow.Cells.Count; i++)
-                        {
-                            Cell emptyCell = new Cell(doc);
-                            emptyCell.CellFormat.HorizontalMerge = CellMerge.Previous;
-                            mergedRow.Cells.Add(emptyCell);
-                        }
-
-                        bookmarkTable.Rows.Add(mergedRow);
-                        foreach (var row in group.Value.OrderBy(r => r.Cells[1].GetText().Trim())) // Sort by Parameter
-                        {
-                            Row newRow = new Row(doc);
-                            for (int i = 1; i < row.Cells.Count; i++) // Exclude Family column
-                            {
-                                Cell newCell = (Cell)row.Cells[i].Clone(true);
-                                newRow.Cells.Add(newCell);
-                            }
-                            bookmarkTable.Rows.Add(newRow);
-                        }
-
-                    }
-                    doc.Save(pathSourceFile + @"\Processed_Document.docm");
-                    Console.WriteLine("Processing completed. Document saved.");
-                }
-                else
-                {
-                    Console.WriteLine("No table found at the bookmark.");
-                }
+                throw new FileNotFoundException("File Not Found!");
             }
 
+            Workbook sourceWorkbook = new Workbook(pathSourceFile);
+            Worksheet RésultatsSheet = sourceWorkbook.Worksheets["Résultats"];
+            Worksheet rapportSheet = sourceWorkbook.Worksheets["Rapport"];
 
+            if (RésultatsSheet == null)
+            {
+                throw new Exception("Sheet 'Résultats' not found!");
+            }
+
+            if (rapportSheet == null)
+            {
+                throw new Exception("Sheet 'Rapport' not found!");
+            }
+
+            ProcessData(RésultatsSheet, rapportSheet);
+            string outputFile = string.IsNullOrEmpty(output) ?
+                             Path.GetDirectoryName(pathSourceFile) + @"\output_" + Path.GetFileName(pathSourceFile)
+                             : output;
+
+            sourceWorkbook.Save(outputFile);
 
         }
 
-        public static void MySecondFunction(List<string> sourceFiles, string output = "")
+
+        public static void ProcessData(Worksheet resultantsSheet, Worksheet rapportSheet)
         {
-            for (int i = 0; i < sourceFiles.Count; i++)
+            int resultantsRowCount = resultantsSheet.Cells.MaxDataRow;
+            int resultantsColCount = resultantsSheet.Cells.MaxDataColumn;
+            Dictionary<string, List<ResultData>> resultList = new Dictionary<string, List<ResultData>>();
+            for (int row = 1; row <= resultantsRowCount; row++)
             {
-                // Load word file
-                Document doc = new Document(sourceFiles[i]);
-
-                // Update title labels (4., 4.1., 4.1.1., ...)
-                doc.UpdateListLabels();
-                // Init a builder that'll be used to write information in the document
-                DocumentBuilder builder = new DocumentBuilder(doc);
-
-                // Write after a named paragraph
-                Paragraph par = UtilsWord.GetParagraph(doc, "4.1.4.");
-                if (par != null)
+                string description = resultantsSheet.Cells[row, 0].StringValue;
+                string resultatConsolide = resultantsSheet.Cells[row, 1].StringValue;
+                string unite = resultantsSheet.Cells[row, 2].StringValue;
+                string norme = resultantsSheet.Cells[row, 5].StringValue;
+                string dateDebutAnalyse = resultantsSheet.Cells[row, 6].StringValue;
+                string cellule = resultantsSheet.Cells[row, 7].StringValue;
+                string accreditation = resultantsSheet.Cells[row, 8].StringValue;
+                ResultData resultData = new ResultData
                 {
-                    // Move to the paragraph
-                    builder.MoveTo(par);
-                    // Go to a new line
-                    builder.InsertBreak(BreakType.ParagraphBreak);
-                    // Set the style back to normal
-                    builder.ParagraphFormat.StyleIdentifier = StyleIdentifier.Normal;
-                    builder.Writeln("ICI");
+                    Description = description,
+                    ResultatConsolide = resultatConsolide,
+                    Unite = unite,
+                    Norme = norme,
+                    DateDebutAnalyse = dateDebutAnalyse,
+                    Accreditation = accreditation
+                };
+                if (resultList.ContainsKey(cellule)) resultList[cellule].Add(resultData);
+                else
+                    resultList.Add(cellule, new List<ResultData>() { resultData });
+            }
+
+            foreach (var result in resultList)
+            {
+                if (result.Key == "Microbiologie")
+                {
+                    Cell mklml = UtilsCell.FindCellByValue(rapportSheet, "Bac - Bacto classique");
+                    if (mklml != null && !string.IsNullOrEmpty(UtilsCell.GetCellStringValue(rapportSheet, mklml.Row - 2, 0)) && UtilsCell.GetCellStringValue(rapportSheet, mklml.Row - 2, 0) == "bactériologie")
+                    {
+                        int rapportRow = mklml.Row + 1;
+                        rapportSheet.Cells.InsertRows(rapportRow, result.Value.Count);
+                        foreach (var data in result.Value)
+                        {
+                            rapportSheet.Cells[rapportRow, 1].Value = (data.Accreditation == "Oui") ? "X" : "";
+                            MergeCellsAndSetValue(rapportSheet, rapportRow, 3, 1, 4, data.Description);
+                            rapportSheet.Cells[rapportRow, 7].Value = data.ResultatConsolide;
+                            rapportSheet.Cells[rapportRow, 9].Value = data.Unite;
+                            MergeCellsAndSetValue(rapportSheet, rapportRow, 11, 1, 2, data.Norme);
+                            MergeCellsAndSetValue(rapportSheet, rapportRow, 13, 1, 5, data.DateDebutAnalyse);
+                            rapportRow++;
+                        }
+                    }
                 }
-
-                // Manage text insertion after/before/replace bookmark
-                UtilsWord.WriteBeforeBookmark(builder, "branche", "BEFORE BOOKMARK ");
-                UtilsWord.WriteAfterBookmark(builder, "branche", " AFTER BOOKMARK");
-                UtilsWord.ReplaceBookmarkWithText(doc, builder, "branche", "REPLACE BOOKMARK");
-
-                // Concat documents
-                Document doc2 = new Document(@"D:\Exemple - Copie.docx");
-                UtilsWord.ConcatDoc(doc, doc2, false, true);
-
-                // TOC Management
-                builder.MoveToDocumentStart();
-                builder.InsertTableOfContents("\\o \"1-5\" \\h \\z \\u");
-                UtilsWord.UpdateTableOfContents(doc);
-                //UtilsWord.RemoveTableOfContents(doc);
-
-                // Save doc
-                doc.Save(output);
             }
         }
+
+
+
+
+        // Function to merge a range of cells and set the value for the first cell in the range
+        public static void MergeCellsAndSetValue(Worksheet worksheet, int row, int colStart, int rowCount, int colCount, string value)
+        {
+            var range = worksheet.Cells.CreateRange(row, colStart, rowCount, colCount);
+            range.Merge();
+            worksheet.Cells[row, colStart].Value = value;
+        }
+        // Assuming "Microbiologie" is in column H (Index 7)
+        //string celluleValue = resultantsSheet.Cells[row, 7].StringValue;
+
+        //if (celluleValue == "Microbiologie")
+        //{
+        // Find "Bac - Bacto classique" in the "Rapport" sheet
+        //int rapportRowCount = rapportSheet.Cells.MaxDataRow;
+        //for (int rapportRow = 0; rapportRow <= rapportRowCount; rapportRow++)
+        //{
+        //    string rapportCellValue = rapportSheet.Cells[rapportRow, 1].StringValue;
+
+        //    if (rapportCellValue == "Bac - Bacto classique")
+        //    {
+        //        rapportSheet.Cells[rapportRow, 1].Value = (accreditation == "Oui") ? "X" : "";
+
+        //        MergeCellsAndSetValue(rapportSheet, rapportRow, 3, 1, 4, description);
+        //        rapportSheet.Cells[rapportRow, 7].Value = resultatConsolide;
+        //        rapportSheet.Cells[rapportRow, 9].Value = unite;
+        //        MergeCellsAndSetValue(rapportSheet, rapportRow, 11, 1, 2, norme);
+        //        MergeCellsAndSetValue(rapportSheet, rapportRow, 13, 1, 5, dateDebutAnalyse);
+        //    }
+        //}
+        //break;  
 
         /// <summary>
         /// Function necessary to work with TxExtraction
